@@ -1,7 +1,8 @@
+## Plain old ruby, non-OOP Version
 
-file='sample_appysphere.log'
+file='./sample_appysphere.log'
 
-
+## Initial constant
 GET_CAMERA_ENDPOINT = /(GET:\/api\/users\/)(\d+.)(\/get_camera)/
 GET_ALL_CAMERA_ENDPOINT = /(GET:\/api\/users\/)(\d+.)(\/get_all_cameras)/
 GET_HOME_ENDPOINT = /(GET:\/api\/users\/)(\d+.)(\/get_home)/
@@ -15,11 +16,7 @@ ALLOW_ENDPOINT = Regexp.union(GET_CAMERA_ENDPOINT,
                               GET_USERS_ENDPOINT
                               )
 
-get_camera_lines = []
-get_all_camera_lines = []
-get_home_lines = []
-get_users_lines = []
-post_users_lines = []
+## General Methods
 
 def data_from_keyword(line,keyword)
   matching = line.match(/(?<=#{keyword}=)(.([^\s]+))/)
@@ -37,7 +34,7 @@ end
 
 def mean(arr)
   return "N/A" if arr.empty?
-  (arr.sum / arr.count).round(2)
+  arr.inject{ |sum, el| sum + el }.to_f / arr.size
 end
 
 def mode(arr)
@@ -48,27 +45,8 @@ def mode(arr)
 end
 
 
-File.readlines(file).each do |line|
-  path = data_from_keyword(line,'path')
-  method = data_from_keyword(line,'method')
-  path_method =  method+':'+path
+## Specific task method for analysis
 
-  if path_method =~  ALLOW_ENDPOINT
-    if path_method =~ GET_CAMERA_ENDPOINT
-      get_camera_lines << line
-    elsif path_method =~ GET_ALL_CAMERA_ENDPOINT
-      get_all_camera_lines << line
-    elsif path_method =~ GET_HOME_ENDPOINT
-      get_home_lines << line
-    elsif path_method =~ GET_USERS_ENDPOINT
-      get_users_lines << line
-    elsif path_method =~ POST_USERS_ENDPOINT
-      post_users_lines << line
-    end
-  end
-end
-
-## Get Total every camera call sort by home
 def total_camera_call_by_home(lines)
   answer = {}
   mapped_array = lines.map { |line| { home_id: data_from_keyword(line,'home_id') } }
@@ -99,7 +77,33 @@ def device_ranking_by_service_time(lines,number_of_rank)
   mapped_array.sort_by { |hash| hash[:service_time]}[0..number_of_rank-1]
 end
 
+## Read file and prepare data
 
+get_camera_lines = []
+get_all_camera_lines = []
+get_home_lines = []
+get_users_lines = []
+post_users_lines = []
+
+File.readlines(file).each do |line|
+  path = data_from_keyword(line,'path')
+  method = data_from_keyword(line,'method')
+  path_method =  method+':'+path
+
+  if path_method =~  ALLOW_ENDPOINT
+    if path_method =~ GET_CAMERA_ENDPOINT
+      get_camera_lines << line
+    elsif path_method =~ GET_ALL_CAMERA_ENDPOINT
+      get_all_camera_lines << line
+    elsif path_method =~ GET_HOME_ENDPOINT
+      get_home_lines << line
+    elsif path_method =~ GET_USERS_ENDPOINT
+      get_users_lines << line
+    elsif path_method =~ POST_USERS_ENDPOINT
+      post_users_lines << line
+    end
+  end
+end
 
 ## Logger
 
